@@ -19,5 +19,6 @@ module.exports = {
 		"@typescript-eslint/no-unused-vars": "warn",
 		// turn off capitalization for all variables
 		"no-var": "off",
+		"require-jsdoc": "off",
 	},
 };

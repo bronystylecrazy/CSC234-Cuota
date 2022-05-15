@@ -1,7 +1,6 @@
 import * as chalk from "chalk";
 
 /** Internal Modules */
-import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
 import jwt from "express-jwt";
@@ -13,13 +12,15 @@ import authRoute from "@/routes/auth";
 /** Misc */
 import config from "./config";
 
-import mongoose from "mongoose";
-
 /** logger */
 import morgan from "morgan";
 import { logger } from "@/utils/serviceLog";
 import path from "path";
 import fs from "fs";
+import { initTables } from "./database/models";
+import eventRoute from "./routes/event";
+import cron from "node-cron";
+import storageRoute from "./routes/storage";
 
 /** Instantiate Application */
 const app = express();
@@ -42,7 +43,7 @@ app.use(express.urlencoded({ extended: true }));
 /** Plugins */
 app.use(
 	cors({
-		origin: "*",
+		origin: "http://localhost:3000",
 		credentials: true,
 	})
 );
@@ -72,6 +73,9 @@ app.use(
 
 /** Routes */
 app.use("/auth", authRoute);
+app.use("/storage", storageRoute);
+/** protected Routes */
+app.use("/event", eventRoute);
 
 // for testing only
 app.get("/", async (req, res) => {
@@ -80,15 +84,21 @@ app.get("/", async (req, res) => {
 
 /** Start a server */
 (async () => {
-	await mongoose
-		.connect(config.MONGODB_HOST)
-		.catch((err) => logger("Server", err, "🚨", "😭", "error"));
+	await initTables().catch((err) =>
+		logger("Server", err, "🚨", "😭", "error")
+	);
 	app.listen(config.PORT, "0.0.0.0", () => {
 		logger(
 			"Server",
 			`running on port ${chalk.bold(":" + config.PORT)}`,
 			"🚀",
 			"😃"
+		);
+	});
+	cron.schedule("*/2 * * * *", async function () {
+		logger("Server", "Syncing database", "🚀", "😃");
+		await initTables().catch((err) =>
+			logger("Server", err, "🚨", "😭", "error")
 		);
 	});
 })();
