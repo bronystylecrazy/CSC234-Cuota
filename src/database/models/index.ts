@@ -1,13 +1,18 @@
 import { DataTypes, Sequelize } from "sequelize";
 import AppConfig from "@/config";
 import { logger } from "@/utils/serviceLog";
-const sequelize = new Sequelize(AppConfig.MYSQL_SERVER);
+const sequelize = new Sequelize(AppConfig.MYSQL_SERVER, {
+	logging: false,
+});
 
 const Account = sequelize.define("Account", {
 	id: {
 		type: DataTypes.INTEGER,
 		primaryKey: true,
 		autoIncrement: true,
+	},
+	avatarUrl: {
+		type: DataTypes.STRING,
 	},
 	username: {
 		type: DataTypes.STRING,
@@ -69,6 +74,9 @@ const Event = sequelize.define("Event", {
 		type: DataTypes.INTEGER,
 		primaryKey: true,
 		autoIncrement: true,
+	},
+	eventImageUrl: {
+		type: DataTypes.STRING,
 	},
 	host_id: {
 		type: DataTypes.INTEGER,
@@ -148,13 +156,13 @@ const Interest = sequelize.define("Interest", {
 });
 
 // eslint-disable-next-line require-jsdoc
-export async function initTables() {
+export async function initTables(force = false) {
 	await Promise.all([
-		Account.sync(),
-		Interest.sync(),
-		Type.sync(),
-		Event.sync(),
-		EventJoin.sync(),
+		Account.sync({ force }),
+		Interest.sync({ force }),
+		Type.sync({ force }),
+		Event.sync({ force }),
+		EventJoin.sync({ force }),
 	]);
 	logger("Database", "ready", "✨", "😃");
 }

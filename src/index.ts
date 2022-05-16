@@ -33,11 +33,11 @@ const accessLogStream = fs.createWriteStream(
 );
 /** Express configurations */
 app.use(express.json());
-app.use(
-	config.isDev
-		? morgan("combined")
-		: morgan("combined", { stream: accessLogStream })
-);
+// app.use(
+// 	config.isDev
+// 		? morgan("combined")
+// 		: morgan("combined", { stream: accessLogStream })
+// );
 app.use(express.urlencoded({ extended: true }));
 
 /** Plugins */

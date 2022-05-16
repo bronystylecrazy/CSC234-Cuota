@@ -11,6 +11,4 @@ const AppConfig = {
 	isDev: process.argv.includes(`--dev`),
 };
 
-console.log(AppConfig.isDev);
-
 export default AppConfig;

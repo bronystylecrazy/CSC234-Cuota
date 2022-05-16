@@ -88,9 +88,15 @@ async function getEvents(req: Request) {
 				?.firstname +
 			" " +
 			accounts.find((account) => account.id === result.host_id)?.lastname,
+		hostAvatarUrl:
+			accounts.find((account) => account.id === result.host_id)
+				?.avatarUrl || "/storage/placeholder.jpg",
+		eventImageUrl: result.eventImageUrl || "/storage/placeholder_bg.png",
 		joined: eventJoins.filter(
 			(eventJoin) => eventJoin.event_id === result.id && eventJoin.accept
 		).length,
+		subType_name:
+			categories.find((c) => c.id === result.subType_id)?.mainType || "",
 	}));
 	return { results, events, accounts, eventJoins, categories };
 }
