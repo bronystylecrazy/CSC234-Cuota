@@ -81,7 +81,7 @@ app.use("/feed", feedRoute);
 
 // for testing only
 app.get("/", async (req, res) => {
-	return res.send("It works! 😃");
+	return res.send("It works! 😃 Thanks god!");
 });
 
 /** Start a server */
