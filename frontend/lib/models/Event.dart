@@ -53,7 +53,7 @@ class Event {
         subType_id: event["subType_id"],
         host: event["host"],
         joined: event["joined"],
-        eventImageUrl: event["eventImageUrl"],
+        eventImageUrl: event["eventImageUrl"] ?? "",
         hostAvatarUrl: event["hostAvatarUrl"],
         subType_name: event["subType_name"]);
   }

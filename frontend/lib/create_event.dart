@@ -1,3 +1,5 @@
+import 'package:cuota/feed.dart';
+import 'package:cuota/profile.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:cuota/explore.dart';
@@ -105,11 +107,19 @@ class _CreateEventState extends State<CreateEvent> {
           elevation: 0.0,
           centerTitle: true,
           leading: IconButton(
-              onPressed: () {}, icon: const Icon(Icons.account_circle)),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const Profile(),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.account_circle)),
           actions: [
             IconButton(
                 onPressed: () {
-                  Navigator.pushReplacement(
+                  Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => const Explore(),
@@ -122,6 +132,48 @@ class _CreateEventState extends State<CreateEvent> {
         body: Padding(
           padding: const EdgeInsets.all(16.0),
           child: ListView(children: Render(context)),
+        ),
+        bottomNavigationBar: BottomNavigationBar(
+          items: const <BottomNavigationBarItem>[
+            BottomNavigationBarItem(
+              icon: Icon(Icons.feed),
+              label: 'Feed',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.rocket),
+              label: 'Host',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.event),
+              label: 'Event',
+            ),
+          ],
+          currentIndex: 1,
+          selectedItemColor: Colors.amber[800],
+          onTap: (e) {
+            if (e == 0) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const Feed(),
+                ),
+              );
+            } else if (e == 1) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CreateEvent(),
+                ),
+              );
+            } else if (e == 2) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const Explore(),
+                ),
+              );
+            }
+          },
         ),
       ),
     );

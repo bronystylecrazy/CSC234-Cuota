@@ -104,11 +104,13 @@ class SubTypeState extends State<SubType> {
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12))),
               onPressed: () => {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const EventDetail(),
-                  ),
+                      builder: (context) => const EventDetail(),
+                      settings: RouteSettings(
+                        arguments: event.id,
+                      )),
                 )
               },
               child: Text(

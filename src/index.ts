@@ -21,6 +21,7 @@ import { initTables } from "./database/models";
 import eventRoute from "./routes/event";
 import cron from "node-cron";
 import storageRoute from "./routes/storage";
+import feedRoute from "./routes/feed";
 
 /** Instantiate Application */
 const app = express();
@@ -76,6 +77,7 @@ app.use("/auth", authRoute);
 app.use("/storage", storageRoute);
 /** protected Routes */
 app.use("/event", eventRoute);
+app.use("/feed", feedRoute);
 
 // for testing only
 app.get("/", async (req, res) => {

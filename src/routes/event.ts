@@ -18,7 +18,7 @@ const eventRoute = express.Router();
 	"minAge": 20,
 	"maxAge": 30,
 	"maxJoin": 100,
-    "eventDate": new Date() // อันนี้ก็แล้วแต่บน flutter อ่ะ มันเป็นวันที่
+	"eventDate": new Date() // อันนี้ก็แล้วแต่บน flutter อ่ะ มันเป็นวันที่
 }
  */
 eventRoute.post("/", async (req, res) => {
@@ -30,6 +30,7 @@ eventRoute.post("/", async (req, res) => {
 				success: false,
 			});
 		}
+
 		const host_id = req.user.user_id;
 		const body = req.body;
 		console.log(body);
@@ -178,11 +179,11 @@ eventRoute.get("/explore/random", async (req, res) => {
 			);
 			categories[category.mainType] =
 				categories[category.mainType][category.subType][
-					Math.floor(
-						Math.random() *
-							categories[category.mainType][category.subType]
-								.length
-					)
+				Math.floor(
+					Math.random() *
+					categories[category.mainType][category.subType]
+						.length
+				)
 				] || null;
 		}
 		// results.forEach((result) => {});

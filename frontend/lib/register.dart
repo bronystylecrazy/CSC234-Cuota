@@ -1,4 +1,5 @@
 import 'package:cuota/login.dart';
+import 'package:cuota/utils/Dio.dart';
 import 'package:flutter/material.dart';
 
 import 'main.dart';
@@ -12,12 +13,19 @@ class Register extends StatefulWidget {
 
 class _RegisterState extends State<Register> {
   final _formKey = GlobalKey<FormState>();
-  var showPassword = false;
+  var showPassword = true;
   String gender = 'Male';
   final items = <String>["Male", "Female", "Other"];
 
   String date = "";
   DateTime selectedDate = DateTime.now();
+
+  final username = TextEditingController();
+  final password = TextEditingController();
+  final confirmPassword = TextEditingController();
+  final firstname = TextEditingController();
+  final lastname = TextEditingController();
+  final nickname = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -66,6 +74,7 @@ class _RegisterState extends State<Register> {
                             alignment: Alignment.centerLeft),
                       ),
                       TextFormField(
+                        controller: username,
                         maxLines: 1,
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
@@ -101,6 +110,7 @@ class _RegisterState extends State<Register> {
                             alignment: Alignment.centerLeft),
                       ),
                       TextFormField(
+                        controller: password,
                         style: const TextStyle(color: Colors.white),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -159,6 +169,7 @@ class _RegisterState extends State<Register> {
                             alignment: Alignment.centerLeft),
                       ),
                       TextFormField(
+                        controller: confirmPassword,
                         style: const TextStyle(color: Colors.white),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -223,6 +234,7 @@ class _RegisterState extends State<Register> {
                                       alignment: Alignment.centerLeft),
                                 ),
                                 TextFormField(
+                                  controller: firstname,
                                   style: const TextStyle(color: Colors.white),
                                   maxLines: 1,
                                   decoration: InputDecoration(
@@ -265,6 +277,7 @@ class _RegisterState extends State<Register> {
                                       alignment: Alignment.centerLeft),
                                 ),
                                 TextFormField(
+                                  controller: lastname,
                                   style: const TextStyle(color: Colors.white),
                                   maxLines: 1,
                                   decoration: InputDecoration(
@@ -312,6 +325,7 @@ class _RegisterState extends State<Register> {
                                       alignment: Alignment.centerLeft),
                                 ),
                                 TextFormField(
+                                  controller: nickname,
                                   style: const TextStyle(color: Colors.white),
                                   maxLines: 1,
                                   decoration: InputDecoration(
@@ -435,7 +449,9 @@ class _RegisterState extends State<Register> {
                         height: 20,
                       ),
                       ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          _register(context);
+                        },
                         style: ElevatedButton.styleFrom(
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(80.0),
@@ -486,7 +502,7 @@ class _RegisterState extends State<Register> {
                           ),
                           TextButton(
                             onPressed: () {
-                              Navigator.pushReplacement(
+                              Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => const Login(),
@@ -528,6 +544,99 @@ class _RegisterState extends State<Register> {
       setState(() {
         selectedDate = selected;
       });
+    }
+  }
+
+  _register(BuildContext context) async {
+    if (password.text.trim() != "" &&
+        password.text.trim() == confirmPassword.text.trim()) {
+      final Map<String, dynamic> userData = {
+        'username': username.text.trim(),
+        'password': password.text.trim(),
+        'firstname': firstname.text.trim(),
+        'lastname': lastname.text.trim(),
+        'nickname': nickname.text.trim(),
+        'birthdate': selectedDate.toString(),
+        'gender': gender,
+      };
+
+      var response =
+          await DioManager.dio.post("/auth/register", data: userData);
+
+      if (!response.data["success"]) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text("Registration Failed"),
+            content: Text(response.data["message"]),
+            actions: [
+              FlatButton(
+                child: Text("OK"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          ),
+        );
+        return;
+      }
+
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text("Registration Successful"),
+          content: Text(response.data["message"]),
+          actions: [
+            FlatButton(
+              child: Text("OK"),
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const Login(),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      );
+    } else {
+      if (password.text.trim() == "") {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text("Registration Failed"),
+            content: Text("Please enter your password"),
+            actions: [
+              FlatButton(
+                child: Text("OK"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          ),
+        );
+        return;
+      }
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text("Registration Failed"),
+          content: Text("Password mismatch"),
+          actions: [
+            FlatButton(
+              child: Text("OK"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        ),
+      );
     }
   }
 }

@@ -1,6 +1,7 @@
 import 'package:cuota/create_event.dart';
 import 'package:cuota/feed.dart';
 import 'package:cuota/models/Event.dart';
+import 'package:cuota/profile.dart';
 import 'package:cuota/utils/Dio.dart';
 import 'package:cuota/widgets/explore/subtype.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +20,7 @@ class _ExploreState extends State<Explore> {
   Map<String, dynamic> explores = {};
 
   List<Event> events = [];
-  Map<String, dynamic> randoms = {};
+  Map<String, Event?> randoms = {};
   Future<void> fetchData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token") ?? "xxx";
@@ -74,11 +75,19 @@ class _ExploreState extends State<Explore> {
           elevation: 0.0,
           centerTitle: true,
           leading: IconButton(
-              onPressed: () {}, icon: const Icon(Icons.account_circle)),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const Profile(),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.account_circle)),
           actions: [
             IconButton(
                 onPressed: () {
-                  Navigator.pushReplacement(
+                  Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => const Feed(),
@@ -89,6 +98,48 @@ class _ExploreState extends State<Explore> {
           ],
         ),
         body: ListView(children: getExplore()),
+        bottomNavigationBar: BottomNavigationBar(
+          items: const <BottomNavigationBarItem>[
+            BottomNavigationBarItem(
+              icon: Icon(Icons.feed),
+              label: 'Feed',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.rocket),
+              label: 'Host',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.event),
+              label: 'Event',
+            ),
+          ],
+          currentIndex: 2,
+          selectedItemColor: Colors.amber[800],
+          onTap: (e) {
+            if (e == 0) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const Feed(),
+                ),
+              );
+            } else if (e == 1) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CreateEvent(),
+                ),
+              );
+            } else if (e == 2) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const Explore(),
+                ),
+              );
+            }
+          },
+        ),
       ),
     );
   }
@@ -190,7 +241,6 @@ class _ExploreState extends State<Explore> {
           ],
         ),
       ));
-
       if (randoms[category] != null) {
         data.add(Container(
           margin: const EdgeInsets.all(20),
@@ -213,7 +263,7 @@ class _ExploreState extends State<Explore> {
                             heightFactor: .4,
                             child: Image.network(
                               DioManager.baseUrl +
-                                  randoms[category].eventImageUrl,
+                                  randoms[category]!.eventImageUrl,
                             )),
                       ),
                     ))

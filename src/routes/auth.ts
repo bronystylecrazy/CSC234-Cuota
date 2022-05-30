@@ -39,17 +39,55 @@ authRoute.post("/login", async (req, res) => {
 	});
 });
 
+authRoute.get('/me', async (req, res) => {
+	const user: any = await Account.findOne({
+		where: {
+			id: req.user.user_id
+		},
+	});
+
+	if (!user) {
+		return res.json({
+			message: 'Invalid user',
+			success: false
+		});
+	}
+
+	delete user["password"];
+
+	return res.json({
+		message: "Fetch user profile success!",
+		success: true,
+		data: { ...user.dataValues, avatarUrl: user.dataValues.avatarUrl || "/storage/placeholder.jpg", password: undefined }
+	});
+});
+
 // POST: /auth/register
 authRoute.post("/register", async (req, res) => {
 	const body = req.body;
+
+	const user: any = await Account.findOne({
+		where: {
+			username: body.username,
+		},
+	});
+
+	if (user) {
+		return res.json({
+			message: "This user is already created!~",
+			data: user,
+			success: false,
+		});
+	}
+
 	const newUser = await Account.create({
 		username: body.username,
 		password: body.password,
 		firstname: body.firstname,
 		lastname: body.lastname,
 		nickname: body.nickname,
-		gender: body.gender,
-		birthday: Date.now(),
+		gender: body.gender.toLowerCase(),
+		birthday: body.birthdate,
 		level: 1,
 		follower: 0,
 		following: 0,

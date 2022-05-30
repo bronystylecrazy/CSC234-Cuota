@@ -1,4 +1,3 @@
-import 'package:cuota/eventDetail2.dart';
 import 'package:cuota/login.dart';
 import 'package:cuota/register.dart';
 import 'package:cuota/splash.dart';

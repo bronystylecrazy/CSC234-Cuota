@@ -1,6 +1,8 @@
+import 'package:cuota/create_event.dart';
 import 'package:cuota/eventDetail.dart';
 import 'package:cuota/explore.dart';
 import 'package:cuota/models/Event.dart';
+import 'package:cuota/profile.dart';
 import 'package:cuota/utils/Dio.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -62,7 +64,15 @@ class _FeedState extends State<Feed> {
             elevation: 0.0,
             centerTitle: true,
             leading: IconButton(
-                onPressed: () {}, icon: const Icon(Icons.account_circle)),
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const Profile(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.account_circle)),
             actions: [
               IconButton(
                   onPressed: () {
@@ -77,6 +87,48 @@ class _FeedState extends State<Feed> {
             ],
           ),
           body: ListView(children: getFeed()),
+          bottomNavigationBar: BottomNavigationBar(
+            items: const <BottomNavigationBarItem>[
+              BottomNavigationBarItem(
+                icon: Icon(Icons.feed),
+                label: 'Feed',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.rocket),
+                label: 'Host',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.event),
+                label: 'Event',
+              ),
+            ],
+            currentIndex: 0,
+            selectedItemColor: Colors.amber[800],
+            onTap: (e) {
+              if (e == 0) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const Feed(),
+                  ),
+                );
+              } else if (e == 1) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CreateEvent(),
+                  ),
+                );
+              } else if (e == 2) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const Explore(),
+                  ),
+                );
+              }
+            },
+          ),
         ));
   }
 
@@ -195,11 +247,14 @@ class _FeedState extends State<Feed> {
                                       ])),
                                   ElevatedButton(
                                     onPressed: () {
-                                      Navigator.pushReplacement(
+                                      Navigator.push(
                                         context,
                                         MaterialPageRoute(
                                           builder: (context) =>
                                               const EventDetail(),
+                                          settings: RouteSettings(
+                                            arguments: events[i].id,
+                                          ),
                                         ),
                                       );
                                     },
@@ -228,7 +283,7 @@ class _FeedState extends State<Feed> {
                                     color: Color.fromARGB(255, 59, 59, 59),
                                   ),
                                   Text(
-                                    "${0}/${events[i].maxJoin}",
+                                    "${events[i].joined}/${events[i].maxJoin}",
                                     style: TextStyle(
                                       color: Color.fromARGB(255, 59, 59, 59),
                                     ),

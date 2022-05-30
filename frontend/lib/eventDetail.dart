@@ -1,6 +1,11 @@
-import 'package:cuota/eventDetail2.dart';
+import 'package:cuota/create_event.dart';
+import 'package:cuota/explore.dart';
 import 'package:cuota/feed.dart';
+import 'package:cuota/models/Event.dart';
+import 'package:cuota/models/User.dart';
+import 'package:cuota/utils/Dio.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'main.dart';
 
@@ -12,6 +17,123 @@ class EventDetail extends StatefulWidget {
 }
 
 class _EventDetailState extends State<EventDetail> {
+  Event? event;
+  List<User> joiners = [];
+  bool joined = false;
+  List<String> months = [
+    'Janduary',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December'
+  ];
+  List<String> days = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday'
+  ];
+
+  fetchEvent(BuildContext context) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var token = prefs.getString("token") ?? "xxx";
+    var eventId = ModalRoute.of(context)!.settings.arguments as int;
+
+    try {
+      var response = await DioManager.dio.get('/feed/$eventId?token=' + token);
+      var response2 =
+          await DioManager.dio.get('/feed/joiners/$eventId?token=' + token);
+      print(response.data["data"]);
+      print(response2.data["data"]);
+      Event event = Event.fromJson(response.data["data"]);
+
+      setState(() {
+        this.event = event;
+        this.joined = response2.data["joined"];
+
+        for (var user in response2.data["data"]) {
+          joiners.add(User.fromJson(user));
+        }
+
+        // joiners = response2.data["data"]
+        //     .map((json) => User.fromJson(json))
+        //     .toList() as List<User>;
+        print(joiners);
+      });
+      print(event.detail);
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  joinEvent(BuildContext context) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var token = prefs.getString("token") ?? "xxx";
+    var eventId = ModalRoute.of(context)!.settings.arguments as int;
+
+    try {
+      var response =
+          await DioManager.dio.post('/feed/join/$eventId?token=' + token);
+      print(response.data["data"]);
+
+      if (response.data["success"]) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text("Joining Event"),
+            content: Text(response.data["message"]),
+            actions: [
+              FlatButton(
+                child: Text("OK"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          ),
+        );
+        fetchEvent(context);
+        setState(() {
+          joined = true;
+        });
+      } else {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text("Joining Event failed"),
+            content: Text(response.data["message"]),
+            actions: [
+              FlatButton(
+                child: Text("OK"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchEvent(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -30,7 +152,7 @@ class _EventDetailState extends State<EventDetail> {
           centerTitle: true,
           leading: IconButton(
               onPressed: () {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => const Feed(),
@@ -40,6 +162,48 @@ class _EventDetailState extends State<EventDetail> {
               icon: const Icon(Icons.arrow_back)),
         ),
         body: ListView(children: getEventDetail()),
+        bottomNavigationBar: BottomNavigationBar(
+          items: const <BottomNavigationBarItem>[
+            BottomNavigationBarItem(
+              icon: Icon(Icons.feed),
+              label: 'Feed',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.rocket),
+              label: 'Host',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.event),
+              label: 'Event',
+            ),
+          ],
+          currentIndex: 2,
+          selectedItemColor: Colors.amber[800],
+          onTap: (e) {
+            if (e == 0) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const Feed(),
+                ),
+              );
+            } else if (e == 1) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CreateEvent(),
+                ),
+              );
+            } else if (e == 2) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const Explore(),
+                ),
+              );
+            }
+          },
+        ),
       ),
     );
   }
@@ -47,9 +211,15 @@ class _EventDetailState extends State<EventDetail> {
   List<Widget> getEventDetail() {
     List<Widget> data = [];
 
-    data.add(Container(
+    data.add(
+      Container(
         child: Image.network(
-            "https://www.skydiveswitzerland.com/wp-content/uploads/2020/09/skydive-switzerland-interlaken-tandem-skydiving-swiss-alps-3.jpg")));
+          event == null
+              ? DioManager.baseUrl + '/storage/placeholder_bg.jpg'
+              : DioManager.baseUrl + event!.eventImageUrl,
+        ),
+      ),
+    );
 
     data.add(Container(
         margin: const EdgeInsets.only(left: 20, right: 20, top: 20),
@@ -69,24 +239,23 @@ class _EventDetailState extends State<EventDetail> {
                     BoxShadow(color: Colors.white, spreadRadius: 4),
                   ]),
                   child: Image.network(
-                    "https://scontent.fbkk2-8.fna.fbcdn.net/v/t39.30808-6/274113888_2680294575447332_8346213907255234640_n.jpg?_nc_cat=100&ccb=1-6&_nc_sid=09cbfe&_nc_eui2=AeEIathyyyVSEKPujChL0Mb6UV41UGBt1aNRXjVQYG3Vo9s4qzizMrSLEcRMtKuoXyDY-YBIdGYZNoCFBO0GvVpy&_nc_ohc=o7vIsYFV2WQAX_KieAL&_nc_ht=scontent.fbkk2-8.fna&oh=00_AT9XgFU5Q6JtsPFXuLh0NdRl98oKsqFIl9_Og0Xgj4x-TQ&oe=627F9FA9",
+                    event == null
+                        ? DioManager.baseUrl + '/storage/placeholder.jpg'
+                        : DioManager.baseUrl + event!.hostAvatarUrl,
                     width: 70,
                   ),
                 ),
                 SizedBox(height: 10),
-                Text("Athippat",
+                Text(event == null ? "" : event!.host,
                     style: TextStyle(
                         color: Colors.white, fontWeight: FontWeight.bold)),
-                Text("Chirawongnathiporn",
-                    style: TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold))
               ],
             ),
             Column(
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Play Skydiving",
+                Text(event == null ? "" : event!.title,
                     style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -102,10 +271,10 @@ class _EventDetailState extends State<EventDetail> {
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text("Switzerland",
+                        Text(event == null ? "" : event!.location,
                             style:
                                 TextStyle(color: Colors.white, fontSize: 20)),
-                        Text("Mittelhorn Mountain",
+                        Text("location of the event",
                             style: TextStyle(color: Colors.white, fontSize: 15))
                       ],
                     )
@@ -133,24 +302,27 @@ class _EventDetailState extends State<EventDetail> {
             color: Colors.white,
           ),
           SizedBox(width: 5),
-          Text("30/30 Joiners",
+          Text(
+              "${event == null ? 0 : event!.joined}/${event == null ? 30 : event!.maxJoin} Joiners",
               style:
                   TextStyle(color: Colors.white, fontWeight: FontWeight.bold))
         ])));
 
     data.add(Container(
         child: Column(children: [
-      for (var i = 0; i < 6; i++) ...{
+      for (var i = 0; i < 1; i++) ...{
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            for (var i = 0; i < 5; i++) ...{
+            for (var i = 0; i < joiners.length; i++) ...{
               Container(
                   decoration: BoxDecoration(boxShadow: [
                     BoxShadow(color: Colors.white, spreadRadius: 4),
                   ]),
                   child: Image.network(
-                      "https://scontent.fbkk2-4.fna.fbcdn.net/v/t39.30808-6/276312645_4886860208101906_2115892120545147338_n.jpg?_nc_cat=101&ccb=1-6&_nc_sid=09cbfe&_nc_eui2=AeHRYqbj_txL6XEsQCULOpXDWIxeXkPFcvZYjF5eQ8Vy9gcw429wUhLXihTrDnIFjyjUo_KuBA-qGRrRzynbMp5s&_nc_ohc=44-fPBngHwYAX-yY2Yg&_nc_ht=scontent.fbkk2-4.fna&oh=00_AT9KPiETZmF33KKggCPC8Hdotm0fkid0QudnwR3QTgaX0Q&oe=627F19DA",
+                      event == null
+                          ? DioManager.baseUrl + '/storage/placeholder_bg.jpg'
+                          : DioManager.baseUrl + joiners[i].avatarUrl!,
                       width: 50))
             }
           ],
@@ -185,8 +357,7 @@ class _EventDetailState extends State<EventDetail> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  Text(
-                      "If you want to play skydiving at Switzerland you can click join now!!",
+                  Text(event == null ? "" : event!.detail,
                       style: TextStyle(color: Colors.white, fontSize: 15)),
                   SizedBox(height: 10),
                   Row(
@@ -197,16 +368,18 @@ class _EventDetailState extends State<EventDetail> {
                         size: 40,
                       ),
                       SizedBox(width: 10),
-                      Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Thursday, 26 May 2022",
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            Text("7.30 PM - 9.30 AM",
-                                style: TextStyle(color: Colors.white))
-                          ])
+                      event == null
+                          ? Column()
+                          : Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                  Text(
+                                    "${days[event!.eventDate.weekday - 1]}, ${event!.eventDate.day} ${months[event!.eventDate.month - 1]} ${event!.eventDate.year}",
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                  Text("${event!.eventDate.toLocal()}",
+                                      style: TextStyle(color: Colors.white))
+                                ])
                     ],
                   ),
                   SizedBox(height: 10),
@@ -223,7 +396,7 @@ class _EventDetailState extends State<EventDetail> {
                           children: [
                             Text("95% Matched",
                                 style: TextStyle(color: Colors.white)),
-                            Text("Travel",
+                            Text(event == null ? "" : event!.subType_name,
                                 style: TextStyle(color: Colors.white))
                           ])
                     ],
@@ -239,7 +412,8 @@ class _EventDetailState extends State<EventDetail> {
                             fontSize: 20),
                       ),
                       SizedBox(width: 10),
-                      Text("20 - 60+ years old",
+                      Text(
+                          "${event == null ? 18 : event!.minAge} - ${event == null ? 65 : event!.maxAge} years old",
                           style: TextStyle(color: Colors.white))
                     ],
                   ),
@@ -252,7 +426,10 @@ class _EventDetailState extends State<EventDetail> {
                         size: 40,
                       ),
                       SizedBox(width: 10),
-                      Text("Male & Female",
+                      Text(
+                          event == null
+                              ? "Male & Female"
+                              : event!.gender.toUpperCase(),
                           style: TextStyle(color: Colors.white))
                     ],
                   ),
@@ -261,6 +438,18 @@ class _EventDetailState extends State<EventDetail> {
             )
           ],
         )));
+
+    if (joined) {
+      data.add(Container(
+        decoration: BoxDecoration(color: Color.fromARGB(255, 63, 192, 198)),
+        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Text(
+            "You have already joined this event!",
+            style: TextStyle(color: Colors.white),
+          )
+        ]),
+      ));
+    }
 
     data.add(Container(
         padding:
@@ -271,12 +460,13 @@ class _EventDetailState extends State<EventDetail> {
           height: 30,
           child: ElevatedButton(
             onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const EventDetail2(),
-                ),
-              );
+              joinEvent(context);
+              // Navigator.pushReplacement(
+              //   context,
+              //   MaterialPageRoute(
+              //     builder: (context) => const EventDetail2(),
+              //   ),
+              // );
             },
             style: ElevatedButton.styleFrom(
               shape: RoundedRectangleBorder(
@@ -302,8 +492,8 @@ class _EventDetailState extends State<EventDetail> {
                   minHeight: 50,
                 ), // min sizes for Material buttons
                 alignment: Alignment.center,
-                child: const Text(
-                  'Join',
+                child: Text(
+                  (joined ? 'Joined' : 'Join'),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 15,
