@@ -635,53 +635,53 @@ class _CreateEventState extends State<CreateEvent> {
       ),
     ]);
 
-    for (var path in eventImagePaths) {
-      data.addAll([
-        Padding(
-          padding: EdgeInsets.symmetric(vertical: 5.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(5),
-                  child: Stack(
-                    children: [
-                      Image.network(
-                        path,
-                        fit: BoxFit.cover,
-                        width: MediaQuery.of(context).size.width * 0.9,
-                      ),
-                      Positioned(
-                        top: 20,
-                        right: 0,
-                        child: ElevatedButton(
-                          child: Icon(
-                            Icons.delete,
-                            color: Colors.black.withAlpha(180),
-                            size: 18,
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            primary: Colors.white.withOpacity(0.5),
-                            shape: const CircleBorder(),
-                          ),
-                          onPressed: () {
-                            deleteImageHandler(context, path);
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ]);
-    }
+    // for (var path in eventImagePaths) {
+    //   data.addAll([
+    //     Padding(
+    //       padding: EdgeInsets.symmetric(vertical: 5.0),
+    //       child: Row(
+    //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    //         children: [
+    //           Card(
+    //             shape: RoundedRectangleBorder(
+    //               borderRadius: BorderRadius.circular(5),
+    //             ),
+    //             child: ClipRRect(
+    //               borderRadius: BorderRadius.circular(5),
+    //               child: Stack(
+    //                 children: [
+    //                   Image.network(
+    //                     path,
+    //                     fit: BoxFit.cover,
+    //                     width: MediaQuery.of(context).size.width * 0.9,
+    //                   ),
+    //                   Positioned(
+    //                     top: 20,
+    //                     right: 0,
+    //                     child: ElevatedButton(
+    //                       child: Icon(
+    //                         Icons.delete,
+    //                         color: Colors.black.withAlpha(180),
+    //                         size: 18,
+    //                       ),
+    //                       style: ElevatedButton.styleFrom(
+    //                         primary: Colors.white.withOpacity(0.5),
+    //                         shape: const CircleBorder(),
+    //                       ),
+    //                       onPressed: () {
+    //                         deleteImageHandler(context, path);
+    //                       },
+    //                     ),
+    //                   ),
+    //                 ],
+    //               ),
+    //             ),
+    //           ),
+    //         ],
+    //       ),
+    //     ),
+    //   ]);
+    // }
 
     data.addAll([
       SizedBox(
