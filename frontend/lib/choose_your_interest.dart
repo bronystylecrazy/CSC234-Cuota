@@ -1,6 +1,8 @@
+import 'package:cuota/feed.dart';
 import 'package:cuota/main.dart';
 import 'package:cuota/utils/Dio.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ChooseYourInterest extends StatefulWidget {
   const ChooseYourInterest({Key? key}) : super(key: key);
@@ -11,6 +13,7 @@ class ChooseYourInterest extends StatefulWidget {
 
 class _ChooseYourInterestState extends State<ChooseYourInterest> {
   var categories;
+  var ids = [];
 
   void _getCategories() async {
     final response = await DioManager.dio.get("/event/category");
@@ -19,6 +22,40 @@ class _ChooseYourInterestState extends State<ChooseYourInterest> {
         categories = response.data["data"];
         print(categories);
       });
+    }
+  }
+
+  void _finishSignIn(BuildContext context) async {
+    print("calling!");
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      final response = await DioManager.dio.post(
+          "/auth/update-interest?token=${prefs.get('token')}",
+          data: {"interests": "[${ids.join(",")}]"});
+      if (response.data["success"]) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => Feed(),
+          ),
+        );
+      } else {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(response.data["message"]),
+            actions: [
+              FlatButton(
+                child: Text("OK"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              )
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      print(e);
     }
   }
 
@@ -61,12 +98,15 @@ class _ChooseYourInterestState extends State<ChooseYourInterest> {
                                 color: Colors.white.withOpacity(.5),
                               ),
                               child: Center(
-                                child: Text(
-                                  cat,
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    cat,
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -75,45 +115,67 @@ class _ChooseYourInterestState extends State<ChooseYourInterest> {
                               height: 120,
                               child: ListView(
                                 scrollDirection: Axis.horizontal,
+                                shrinkWrap: true,
                                 children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: (categories[cat] as List<dynamic>)
-                                        .map(
-                                          (c) => Container(
-                                            decoration:
-                                                BoxDecoration(boxShadow: [
-                                              BoxShadow(
-                                                  color: Color.fromARGB(
-                                                          255, 37, 37, 37)
-                                                      .withOpacity(0),
-                                                  spreadRadius: 2,
-                                                  blurRadius: 3,
-                                                  offset: Offset(0, 3))
-                                            ]),
-                                            child: Padding(
-                                              padding:
-                                                  const EdgeInsets.all(8.0),
-                                              child: InkWell(
-                                                onTap: () {},
-                                                child: ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(10),
-                                                  child: Image(
-                                                    height: 100,
-                                                    color: Colors.white
-                                                        .withOpacity(0.5),
-                                                    colorBlendMode:
-                                                        BlendMode.modulate,
-                                                    image: NetworkImage(
-                                                        "https://fakeimg.pl/512x512/?text=${c['subType']}"),
+                                  Center(
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: (categories[cat]
+                                              as List<dynamic>)
+                                          .map(
+                                            (c) => Container(
+                                              decoration:
+                                                  BoxDecoration(boxShadow: [
+                                                BoxShadow(
+                                                    color: Color.fromARGB(
+                                                            255, 37, 37, 37)
+                                                        .withOpacity(0),
+                                                    spreadRadius: 2,
+                                                    blurRadius: 3,
+                                                    offset: Offset(0, 3))
+                                              ]),
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.all(8.0),
+                                                child: InkWell(
+                                                  onTap: () {
+                                                    setState(() {
+                                                      if (ids
+                                                          .contains(c['id'])) {
+                                                        ids.remove(c["id"]);
+                                                        print('found!');
+                                                      } else {
+                                                        ids.add(c["id"]);
+                                                        print("not found!");
+                                                      }
+                                                      print(ids);
+                                                    });
+                                                  },
+                                                  child: ClipRRect(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            10),
+                                                    child: Image(
+                                                      height: 100,
+                                                      color: Colors.white
+                                                          .withOpacity(
+                                                              ids.contains(
+                                                                      c['id'])
+                                                                  ? 1
+                                                                  : 0.5),
+                                                      colorBlendMode:
+                                                          BlendMode.modulate,
+                                                      image: NetworkImage(
+                                                          "https://fakeimg.pl/512x512/?text=${c['subType']}"),
+                                                    ),
                                                   ),
                                                 ),
                                               ),
                                             ),
-                                          ),
-                                        )
-                                        .toList(),
+                                          )
+                                          .toList(),
+                                    ),
                                   ),
                                 ],
                               ),
@@ -122,9 +184,47 @@ class _ChooseYourInterestState extends State<ChooseYourInterest> {
                         ),
                       )
                       .toList(),
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (ids.length == 0) {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title:
+                                  Text("Please select at least one interest"),
+                              actions: [
+                                FlatButton(
+                                  child: Text("OK"),
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                )
+                              ],
+                            ),
+                          );
+                        } else {
+                          _finishSignIn(context);
+                        }
+                      },
+                      style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all(Colors
+                              .blueAccent
+                              .withOpacity(ids.length > 0 ? 1 : 0.5))),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          "Finish Signing In",
+                          style: TextStyle(fontSize: 24),
+                        ),
+                      ),
+                    ),
+                  )
                 ],
               )
-            : Text("Loading..."),
+            : Center(
+                child: CircularProgressIndicator(),
+              ),
       ),
     );
   }

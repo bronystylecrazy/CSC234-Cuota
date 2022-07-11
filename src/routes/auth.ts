@@ -38,9 +38,6 @@ authRoute.post("/login", async (req, res) => {
 			},
 		});
 
-		interest.setDataValue('isFirstTime', false);
-		await interest.save();
-
 		return res.json({
 			message: "Login successful",
 			token: jwt.sign(
@@ -50,7 +47,7 @@ authRoute.post("/login", async (req, res) => {
 					expiresIn: "7d",
 				}
 			),
-			firstTime: interest.getDataValue('isFirstTime') ? true : false,
+			firstTime: interest.getDataValue('isFirstTime'),
 			success: true,
 		});
 	}
@@ -81,6 +78,33 @@ authRoute.get('/me', async (req, res) => {
 		message: "Fetch user profile success!",
 		success: true,
 		data: { ...user.dataValues, avatarUrl: user.dataValues.avatarUrl || "/storage/placeholder.jpg", password: undefined }
+	});
+});
+
+
+authRoute.post('/update-interest', async (req, res) => {
+	const id = req.user?.user_id;
+
+	console.log(`Checking id ${id}`)
+
+	const interest = await Interest.findOne({
+		where: {
+			account_id: id || '-1',
+		}
+	});
+
+	if(interest){
+		interest.setDataValue('isFirstTime', false);
+		await interest.save();
+		return res.json({
+		message: "Update interest success!",
+		success: true,
+	});
+	}
+
+	return res.json({
+		message: "Update interest failed!",
+		success: false,
 	});
 });
 

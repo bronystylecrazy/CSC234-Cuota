@@ -264,12 +264,22 @@ class _LoginState extends State<Login> {
         //     builder: (context) => const ChooseYourInterest(),
         //   ),
         // );
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const Feed(),
-          ),
-        );
+
+        if (response.data["firstTime"]) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const ChooseYourInterest(),
+            ),
+          );
+        } else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const Feed(),
+            ),
+          );
+        }
       } else {
         showDialog(
           context: context,

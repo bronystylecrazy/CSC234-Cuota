@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 
 class DioManager {
   static late Dio dio;
-  static const baseUrl = 'https://cuota.devsirawit.com';
+  static const baseUrl = 'http://localhost:8080';
   static void register() async {
     var options = BaseOptions(
       baseUrl: baseUrl,
