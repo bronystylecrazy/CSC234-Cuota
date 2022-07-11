@@ -24,6 +24,7 @@ class _CreateEventState extends State<CreateEvent> {
   String gender = 'Male';
   final items = <String>["Male", "Female"];
   int numOfpeople = 1;
+  bool isFirstTime = false;
 
   RangeValues ageValues = RangeValues(12, 65);
   int minAge = 12;
@@ -64,7 +65,9 @@ class _CreateEventState extends State<CreateEvent> {
               .toList());
         }
         categories = (response.data["data"]).keys.toList() as List<String>;
-        selectedCategory = categories[0];
+        if (!isFirstTime) {
+          selectedCategory = categories[0];
+        }
         selectedSubCategory = results[selectedCategory]![0].subType;
       });
     } catch (e) {
@@ -91,6 +94,11 @@ class _CreateEventState extends State<CreateEvent> {
 
   @override
   Widget build(BuildContext context) {
+    if (!isFirstTime && ModalRoute.of(context)?.settings.arguments != null) {
+      selectedCategory = ModalRoute.of(context)?.settings.arguments as String;
+      print("Selected " + selectedCategory);
+      isFirstTime = true;
+    }
     return Container(
       decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -179,7 +187,9 @@ class _CreateEventState extends State<CreateEvent> {
     );
   }
 
-  List<Widget> Render(BuildContext context) {
+  List<Widget> Render(
+    BuildContext context,
+  ) {
     List<Widget> data = [];
     data.add(Container(
       child: Row(
@@ -223,29 +233,33 @@ class _CreateEventState extends State<CreateEvent> {
         ),
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 15.0),
-          child: DropdownButton(
-            value: selectedCategory,
-            icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
-            style: const TextStyle(color: Colors.white),
-            items: categories.map((String item) {
-              return DropdownMenuItem(
-                value: item,
-                child: Text(item),
-              );
-            }).toList(),
-            dropdownColor: const Color.fromARGB(255, 41, 19, 70),
-            alignment: Alignment.centerLeft,
-            isExpanded: true,
-            underline: Container(),
-            focusColor: Colors.transparent,
-            onChanged: (String? value) {
-              setState(() {
-                selectedCategory = value!;
-                selectedSubCategory = results[selectedCategory]![0].subType;
-                print(selectedCategory);
-              });
-            },
-          ),
+          child: categories.contains(selectedCategory)
+              ? DropdownButton(
+                  value: selectedCategory,
+                  icon: const Icon(Icons.keyboard_arrow_down,
+                      color: Colors.white),
+                  style: const TextStyle(color: Colors.white),
+                  items: categories.map((String item) {
+                    return DropdownMenuItem(
+                      value: item,
+                      child: Text(item),
+                    );
+                  }).toList(),
+                  dropdownColor: const Color.fromARGB(255, 41, 19, 70),
+                  alignment: Alignment.centerLeft,
+                  isExpanded: true,
+                  underline: Container(),
+                  focusColor: Colors.transparent,
+                  onChanged: (String? value) {
+                    setState(() {
+                      selectedCategory = value!;
+                      selectedSubCategory =
+                          results[selectedCategory]![0].subType;
+                      print(selectedCategory);
+                    });
+                  },
+                )
+              : Text("Loading..."),
         ),
       ),
     ]);

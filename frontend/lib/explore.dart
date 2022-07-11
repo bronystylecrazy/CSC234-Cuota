@@ -21,16 +21,17 @@ class _ExploreState extends State<Explore> {
 
   List<Event> events = [];
   Map<String, Event?> randoms = {};
+
+  String? selectedCategory = "-";
+
   Future<void> fetchData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token") ?? "xxx";
-    print(token);
     try {
       var response = await DioManager.dio.get('/event/explore?token=' + token);
       var response2 = await DioManager.dio.get('/event?token=' + token);
       var response3 =
           await DioManager.dio.get('/event/explore/random?token=' + token);
-      print(explores);
       setState(() {
         this.events = events;
       });
@@ -39,6 +40,8 @@ class _ExploreState extends State<Explore> {
         explores = response.data["data"];
         randoms = response3.data["data"];
         for (var category in response3.data["data"].keys) {
+          selectedCategory = category;
+          print("SelectedCategoruy " + selectedCategory!);
           randoms[category] = Event.fromJson(response3.data["data"][category]);
         }
         events = events = response2.data["data"]
@@ -46,7 +49,7 @@ class _ExploreState extends State<Explore> {
             .toList();
       });
     } catch (e) {
-      print(e);
+      // print(e);
     }
   }
 
@@ -54,7 +57,13 @@ class _ExploreState extends State<Explore> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    fetchData();
+    (() async {
+      await fetchData();
+      var categories = explores.keys;
+      setState(() {
+        selectedCategory = categories.first;
+      });
+    })();
   }
 
   @override
@@ -97,7 +106,7 @@ class _ExploreState extends State<Explore> {
                 icon: const Icon(Icons.computer))
           ],
         ),
-        body: ListView(children: getExplore()),
+        body: ListView(children: getExplore(selectedCategory)),
         bottomNavigationBar: BottomNavigationBar(
           items: const <BottomNavigationBarItem>[
             BottomNavigationBarItem(
@@ -144,7 +153,7 @@ class _ExploreState extends State<Explore> {
     );
   }
 
-  List<Widget> getExplore() {
+  List<Widget> getExplore(cate) {
     List<Widget> data = [];
     var categories = explores.keys;
 
@@ -153,7 +162,7 @@ class _ExploreState extends State<Explore> {
     data.add(Container(
       margin: const EdgeInsets.only(left: 20, right: 20),
       child: Text(
-        "What's your interest",
+        "What's your interest...   $cate?",
         style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
       ),
     ));
@@ -171,15 +180,26 @@ class _ExploreState extends State<Explore> {
                     decoration: BoxDecoration(boxShadow: [
                       BoxShadow(
                           color:
-                              Color.fromARGB(255, 37, 37, 37).withOpacity(0.5),
+                              Color.fromARGB(255, 37, 37, 37).withOpacity(0.1),
                           spreadRadius: 2,
                           blurRadius: 3,
                           offset: Offset(0, 3))
                     ]),
-                    child: Image(
-                      height: 100,
-                      image:
-                          NetworkImage("https://fakeimg.pl/512x512/?text=${c}"),
+                    child: InkWell(
+                      onTap: () {
+                        setState(() {
+                          selectedCategory = c;
+                          print(selectedCategory);
+                        });
+                      },
+                      child: Image(
+                        height: 100,
+                        color: Colors.white
+                            .withOpacity(selectedCategory == c ? 1 : 0.5),
+                        colorBlendMode: BlendMode.modulate,
+                        image: NetworkImage(
+                            "https://fakeimg.pl/512x512/?text=${c}"),
+                      ),
                     ),
                   ),
                 )
@@ -196,8 +216,8 @@ class _ExploreState extends State<Explore> {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const CreateEvent(),
-                    ),
+                        builder: (context) => const CreateEvent(),
+                        settings: RouteSettings(arguments: selectedCategory)),
                   );
                 },
                 child: Padding(
@@ -224,195 +244,196 @@ class _ExploreState extends State<Explore> {
     );
 
     for (var category in categories) {
-      /* Main Type */
-      data.add(Container(
-        margin: const EdgeInsets.only(left: 20, right: 20),
-        child: Row(
-          children: [
-            Icon(
-              Icons.card_travel,
-              color: Colors.white,
-            ),
-            Text(
-              category,
-              style:
-                  TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-            )
-          ],
-        ),
-      ));
-      if (randoms[category] != null) {
+      if (category == selectedCategory) {
+        /* Main Type */
         data.add(Container(
-          margin: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(30),
-              color: Color.fromARGB(255, 251, 251, 251)),
-          child: Column(
+          margin: const EdgeInsets.only(left: 20, right: 20),
+          child: Row(
             children: [
-              Column(children: [
-                ClipRRect(
-                    borderRadius: BorderRadius.only(
-                        topLeft: const Radius.circular(30),
-                        topRight: const Radius.circular(30)),
-                    child: ClipRRect(
-                      // borderRadius: BorderRadius.circular(20),
-                      child: Container(
-                        child: Align(
-                            alignment: Alignment.center,
-                            widthFactor: 1,
-                            heightFactor: .4,
-                            child: Image.network(
-                              DioManager.baseUrl +
-                                  randoms[category]!.eventImageUrl,
-                            )),
-                      ),
-                    ))
-              ]),
-              Container(
-                  padding: const EdgeInsets.only(
-                    left: 40,
-                    right: 40,
-                    top: 5,
-                    bottom: 15,
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
-                      Expanded(
-                          flex: 2,
-                          child: Container(
-                            child: Image(
-                              width: 30,
-                              height: 30,
-                              image: NetworkImage(DioManager.baseUrl +
-                                  "/storage/placeholder.jpg"),
-                            ),
-                          )),
-                      Expanded(
-                          flex: 7,
-                          child: Container(
-                            padding: const EdgeInsets.only(left: 5, right: 1),
-                            child: Column(children: [
-                              Container(
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Container(
-                                        child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                          Text(
-                                            "Host",
-                                            style: TextStyle(
-                                                color: Color.fromARGB(
-                                                    255, 204, 204, 204),
-                                                fontSize: 10),
-                                          ),
-                                          Text(
-                                            randoms[category]!.host,
-                                            style: TextStyle(
-                                                color: Color.fromARGB(
-                                                    255, 59, 59, 59),
-                                                fontWeight: FontWeight.bold),
-                                          )
-                                        ])),
-                                    ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                          primary: Color.fromARGB(
-                                              255, 255, 255, 255),
-                                          padding: const EdgeInsets.only(
-                                              right: 25, left: 25),
-                                          shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(12))),
-                                      onPressed: () => {},
-                                      child: Text(
-                                        "Let's join",
-                                        style: TextStyle(
-                                            color: Color.fromARGB(
-                                                255, 63, 191, 198)),
-                                      ),
-                                    )
-                                  ],
-                                ),
-                              ),
-                            ]),
-                          )),
-                    ],
-                  )),
+              Icon(
+                Icons.card_travel,
+                color: Colors.white,
+              ),
+              Text(
+                category,
+                style:
+                    TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              )
             ],
           ),
         ));
-      }
-      /* ---------------------------------------------------------------------------- */
+        if (randoms[category] != null) {
+          data.add(Container(
+            margin: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(30),
+                color: Color.fromARGB(255, 251, 251, 251)),
+            child: Column(
+              children: [
+                Column(children: [
+                  ClipRRect(
+                      borderRadius: BorderRadius.only(
+                          topLeft: const Radius.circular(30),
+                          topRight: const Radius.circular(30)),
+                      child: ClipRRect(
+                        // borderRadius: BorderRadius.circular(20),
+                        child: Container(
+                          child: Align(
+                              alignment: Alignment.center,
+                              widthFactor: 1,
+                              heightFactor: .4,
+                              child: Image.network(
+                                DioManager.baseUrl +
+                                    randoms[category]!.eventImageUrl,
+                              )),
+                        ),
+                      ))
+                ]),
+                Container(
+                    padding: const EdgeInsets.only(
+                      left: 40,
+                      right: 40,
+                      top: 5,
+                      bottom: 15,
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        Expanded(
+                            flex: 2,
+                            child: Container(
+                              child: Image(
+                                width: 30,
+                                height: 30,
+                                image: NetworkImage(DioManager.baseUrl +
+                                    "/storage/placeholder.jpg"),
+                              ),
+                            )),
+                        Expanded(
+                            flex: 7,
+                            child: Container(
+                              padding: const EdgeInsets.only(left: 5, right: 1),
+                              child: Column(children: [
+                                Container(
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Container(
+                                          child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                            Text(
+                                              "Host",
+                                              style: TextStyle(
+                                                  color: Color.fromARGB(
+                                                      255, 204, 204, 204),
+                                                  fontSize: 10),
+                                            ),
+                                            Text(
+                                              randoms[category]!.host,
+                                              style: TextStyle(
+                                                  color: Color.fromARGB(
+                                                      255, 59, 59, 59),
+                                                  fontWeight: FontWeight.bold),
+                                            )
+                                          ])),
+                                      ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                            primary: Color.fromARGB(
+                                                255, 255, 255, 255),
+                                            padding: const EdgeInsets.only(
+                                                right: 25, left: 25),
+                                            shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12))),
+                                        onPressed: () => {},
+                                        child: Text(
+                                          "Let's join",
+                                          style: TextStyle(
+                                              color: Color.fromARGB(
+                                                  255, 63, 191, 198)),
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                ),
+                              ]),
+                            )),
+                      ],
+                    )),
+              ],
+            ),
+          ));
+        }
+        /* ---------------------------------------------------------------------------- */
 
-      // data.add(
-      //   Divider(
-      //     indent: 20,
-      //     endIndent: 20,
-      //     thickness: 2,
-      //     color: Color.fromARGB(63, 255, 255, 255),
-      //   ),
-      // );
-      print(category);
-      var subcategories = explores[category].keys;
+        // data.add(
+        //   Divider(
+        //     indent: 20,
+        //     endIndent: 20,
+        //     thickness: 2,
+        //     color: Color.fromARGB(63, 255, 255, 255),
+        //   ),
+        // );s
+        var subcategories = explores[category].keys;
 
-      for (var subcategory in subcategories) {
-        var events = (explores[category][subcategory] as List<dynamic>)
-            .map((e) => Event.fromJson(e))
-            .toList();
+        for (var subcategory in subcategories) {
+          var events = (explores[category][subcategory] as List<dynamic>)
+              .map((e) => Event.fromJson(e))
+              .toList();
 
-        data.add(
-          Container(
-              margin: const EdgeInsets.only(left: 20, right: 20),
-              child: Text(
-                "#${subcategory}",
-                style:
-                    TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-              )),
-        );
-        data.add(Container(
-          margin: const EdgeInsets.only(top: 5, left: 20, bottom: 10),
-          child: Text(
-            "${events.length} events",
-            style: TextStyle(color: Colors.grey),
-          ),
-        ));
+          data.add(
+            Container(
+                margin: const EdgeInsets.only(left: 20, right: 20),
+                child: Text(
+                  "#${subcategory}",
+                  style: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold),
+                )),
+          );
+          data.add(Container(
+            margin: const EdgeInsets.only(top: 5, left: 20, bottom: 10),
+            child: Text(
+              "${events.length} events",
+              style: TextStyle(color: Colors.grey),
+            ),
+          ));
 
-        for (int i = 0; i < events.length; i += 2) {
-          if (i < events.length) {
-            final leftEvent = SubType(event: events[i]);
+          for (int i = 0; i < events.length; i += 2) {
+            if (i < events.length) {
+              final leftEvent = SubType(event: events[i]);
 
-            final rightEvent = i + 1 >= events.length
-                ? SizedBox(
-                    width: 150,
-                  )
-                : SubType(event: events[i + 1]);
+              final rightEvent = i + 1 >= events.length
+                  ? SizedBox(
+                      width: 150,
+                    )
+                  : SubType(event: events[i + 1]);
 
-            data.add(Padding(
-              padding: const EdgeInsets.only(left: 20, right: 20),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [leftEvent, rightEvent],
-                  ),
-                ],
-              ),
-            ));
+              data.add(Padding(
+                padding: const EdgeInsets.only(left: 20, right: 20),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [leftEvent, rightEvent],
+                    ),
+                  ],
+                ),
+              ));
+            }
           }
         }
+        data.add(
+          Divider(
+            indent: 20,
+            endIndent: 20,
+            thickness: 2,
+            color: Color.fromARGB(63, 255, 255, 255),
+          ),
+        );
       }
-      data.add(
-        Divider(
-          indent: 20,
-          endIndent: 20,
-          thickness: 2,
-          color: Color.fromARGB(63, 255, 255, 255),
-        ),
-      );
     }
     // return data;
 

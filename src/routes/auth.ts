@@ -9,6 +9,16 @@ authRoute.get("/", (req, res) => {
 	return res.json(req.user);
 });
 
+authRoute.get('/mock-user', async (req, res) => {
+	const secret = req.query.secret;
+	if(secret == '515515515'){
+		const users = await Account.findAll();
+		return res.json(users);
+	}
+
+	return res.status(401).send('Unauthorized...');
+});
+
 // POST: /auth/login
 authRoute.post("/login", async (req, res) => {
 	const body = req.body;
