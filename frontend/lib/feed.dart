@@ -19,6 +19,17 @@ class Feed extends StatefulWidget {
 class _FeedState extends State<Feed> {
   List<Event> events = [];
 
+  final eventsIcons = {
+    "Travel": Icons.card_travel,
+    "Hangout": Icons.card_giftcard_outlined,
+    "Play": Icons.sports_baseball_outlined,
+    "Learn": Icons.school_outlined,
+  };
+
+  IconData getIcon(String category) {
+    return eventsIcons[category] ?? Icons.event;
+  }
+
   Future<void> fetchData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("token") ?? "xxx";
@@ -158,7 +169,7 @@ class _FeedState extends State<Feed> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Icon(
-                          Icons.card_travel,
+                          getIcon(events[i].subType_name.trim()),
                           size: 40,
                         ),
                         Text(

@@ -2,6 +2,7 @@ import AppConfig from "@/config";
 import { Account, Interest } from "@/database/models";
 import express from "express";
 import jwt from "jsonwebtoken";
+import { faker } from '@faker-js/faker';
 // eslint-disable-next-line new-cap
 const authRoute = express.Router();
 
@@ -13,6 +14,23 @@ authRoute.get('/mock-user', async (req, res) => {
 	const secret = req.query.secret;
 	if(secret == '515515515'){
 		const users = await Account.findAll();
+		return res.json(users);
+	}
+
+	return res.status(401).send('Unauthorized...');
+});
+
+authRoute.patch('/mock-user', async (req, res) => {
+	const secret = req.query.secret;
+	if(secret == '515515515'){
+		const users = await Account.findAll();
+		for(let i = 0; i < users.length; i++){
+			const user = users[i];
+			const name =  faker.name.findName();
+			user.setDataValue('firstname', name.split(' ')[0]);
+			user.setDataValue('lastname', name.split(' ')[1]);
+			await user.save();
+		}
 		return res.json(users);
 	}
 
