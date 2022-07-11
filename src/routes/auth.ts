@@ -1,5 +1,5 @@
 import AppConfig from "@/config";
-import { Account } from "@/database/models";
+import { Account, Interest } from "@/database/models";
 import express from "express";
 import jwt from "jsonwebtoken";
 // eslint-disable-next-line new-cap
@@ -30,7 +30,17 @@ authRoute.post("/login", async (req, res) => {
 		},
 	});
 
-	if (user)
+	if (user){
+
+		const interest = await Interest.findOne({
+			where: {
+				account_id: user.id,
+			},
+		});
+
+		interest.setDataValue('isFirstTime', false);
+		await interest.save();
+
 		return res.json({
 			message: "Login successful",
 			token: jwt.sign(
@@ -40,8 +50,10 @@ authRoute.post("/login", async (req, res) => {
 					expiresIn: "7d",
 				}
 			),
+			firstTime: interest.getDataValue('isFirstTime') ? true : false,
 			success: true,
 		});
+	}
 
 	return res.json({
 		message: "Invalid username or password",
@@ -104,6 +116,12 @@ authRoute.post("/register", async (req, res) => {
 		contact: body.contact,
 	});
 
+	await Interest.create({
+		account_id: +newUser.getDataValue('id'),
+		isFirstTime: true,
+		interests: "[]",
+	})
+
 	delete newUser["password"];
 
 	return res.json({
@@ -112,5 +130,8 @@ authRoute.post("/register", async (req, res) => {
 		success: true,
 	});
 });
+
+
+
 
 export default authRoute;

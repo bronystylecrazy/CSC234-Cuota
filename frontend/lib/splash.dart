@@ -1,3 +1,4 @@
+import 'package:cuota/choose_your_interest.dart';
 import 'package:cuota/create_event.dart';
 import 'package:cuota/explore.dart';
 import 'package:cuota/login.dart';
@@ -27,8 +28,8 @@ class _SplashState extends State<Splash> {
     var prefs = await SharedPreferences.getInstance();
     // prefs.setString("token",
     //     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6InNpcmF3aXQiLCJpYXQiOjE2NTI2MTg4NTYsImV4cCI6MTY1MzIyMzY1Nn0.1hs8PcHe4Dj-eIh-MCM6a15ZCVh3sNQK50ug2nsb0kQ");
-    Navigator.pushReplacement(
-        context, MaterialPageRoute(builder: (context) => const Login()));
+    Navigator.pushReplacement(context,
+        MaterialPageRoute(builder: (context) => const ChooseYourInterest()));
     // Navigator.pushReplacement(
     //     context, MaterialPageRoute(builder: (context) => const Login()));
   }

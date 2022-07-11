@@ -147,13 +147,21 @@ const Interest = sequelize.define("Interest", {
 		primaryKey: true,
 		autoIncrement: true,
 	},
-	subType_id: {
-		type: DataTypes.INTEGER,
-	},
 	account_id: {
 		type: DataTypes.INTEGER,
 	},
+	isFirstTime: {
+		type: DataTypes.BOOLEAN,
+		allowNull: false,
+		defaultValue: true,
+	},
+	interests: {
+		type: DataTypes.STRING,
+		allowNull: false,
+		defaultValue: "[]"
+	}
 });
+
 
 // eslint-disable-next-line require-jsdoc
 export async function initTables(force = false) {
