@@ -245,29 +245,6 @@ class _FeedState extends State<Feed> {
                                               fontWeight: FontWeight.bold),
                                         )
                                       ])),
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              const EventDetail(),
-                                          settings: RouteSettings(
-                                            arguments: events[i].id,
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                        primary:
-                                            Color.fromARGB(255, 63, 191, 198),
-                                        padding: const EdgeInsets.only(
-                                            right: 25, left: 25),
-                                        shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(12))),
-                                    child: Text("View"),
-                                  )
                                 ],
                               ),
                             ),
