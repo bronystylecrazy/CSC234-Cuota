@@ -238,33 +238,13 @@ class _FeedState extends State<Feed> {
                                               fontSize: 10),
                                         ),
                                         Text(
-                                          events[i].host,
+                                          events[i].host.split(" ")[0],
                                           style: TextStyle(
                                               color: Color.fromARGB(
                                                   255, 59, 59, 59),
                                               fontWeight: FontWeight.bold),
                                         )
                                       ])),
-                                ],
-                              ),
-                            ),
-                            SizedBox(
-                              child: Divider(
-                                  color: Color.fromARGB(151, 62, 62, 62)),
-                            ),
-                            Container(
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.people,
-                                    color: Color.fromARGB(255, 59, 59, 59),
-                                  ),
-                                  Text(
-                                    "${events[i].joined}/${events[i].maxJoin}",
-                                    style: TextStyle(
-                                      color: Color.fromARGB(255, 59, 59, 59),
-                                    ),
-                                  ),
                                   ElevatedButton(
                                     onPressed: () {
                                       Navigator.push(
@@ -287,6 +267,26 @@ class _FeedState extends State<Feed> {
                                             borderRadius:
                                                 BorderRadius.circular(12))),
                                     child: Text("View"),
+                                  )
+                                ],
+                              ),
+                            ),
+                            SizedBox(
+                              child: Divider(
+                                  color: Color.fromARGB(151, 62, 62, 62)),
+                            ),
+                            Container(
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.people,
+                                    color: Color.fromARGB(255, 59, 59, 59),
+                                  ),
+                                  Text(
+                                    "${events[i].joined}/${events[i].maxJoin}",
+                                    style: TextStyle(
+                                      color: Color.fromARGB(255, 59, 59, 59),
+                                    ),
                                   )
                                 ],
                               ),
