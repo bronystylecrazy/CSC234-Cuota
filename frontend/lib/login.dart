@@ -1,3 +1,4 @@
+import 'package:cuota/choose_your_interest.dart';
 import 'package:cuota/feed.dart';
 import 'package:cuota/register.dart';
 import 'package:cuota/utils/Dio.dart';
@@ -257,13 +258,18 @@ class _LoginState extends State<Login> {
       if (response.data["success"]) {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         prefs.setString("token", response.data["token"]);
-
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const Feed(),
+            builder: (context) => const ChooseYourInterest(),
           ),
         );
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(
+        //     builder: (context) => const Feed(),
+        //   ),
+        // );
       } else {
         showDialog(
           context: context,
